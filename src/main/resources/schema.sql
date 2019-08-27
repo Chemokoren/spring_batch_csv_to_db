@@ -1,4 +1,6 @@
 DROP TABLE IF EXISTS person;
+DROP TABLE IF EXISTS email;
+DROP TABLE IF EXISTS age;
 
 CREATE TABLE person  (
     person_id BIGINT auto_increment NOT NULL PRIMARY KEY,
