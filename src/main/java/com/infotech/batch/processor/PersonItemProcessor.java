@@ -1,26 +1,25 @@
 package com.infotech.batch.processor;
 
+import com.infotech.batch.model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.batch.item.ItemProcessor;
 
-import com.infotech.batch.model.Person;
-
-public class PersonItemProcessor implements ItemProcessor<Person, Person> {
+public class PersonItemProcessor implements ItemProcessor<User, User> {
 
     private static final Logger log = LoggerFactory.getLogger(PersonItemProcessor.class);
 
     @Override
-    public Person process(final Person person) throws Exception {
-        final String firstName = person.getFirstName().toUpperCase();
-        final String lastName = person.getLastName().toUpperCase();
+    public User process(final User user) throws Exception {
+        final String firstName = user.getFirstName().toUpperCase();
+        final String lastName = user.getLastName().toUpperCase();
 
-        final Person transformedPerson = new Person(firstName, lastName,person.getEmail(),person.getAge());
+        final User transformedUser = new User(firstName, lastName);
 
-        log.info("Converting (" + person + ") into (" + transformedPerson + ")");
+        log.info("Converting (" + user + ") into (" + transformedUser + ")");
 
-        return transformedPerson;
+        return transformedUser;
     }
 
 }

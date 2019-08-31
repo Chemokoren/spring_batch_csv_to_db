@@ -2,6 +2,7 @@ package com.infotech.batch.config;
 
 import javax.sql.DataSource;
 
+import com.infotech.batch.model.User;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
@@ -9,7 +10,6 @@ import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
-import org.springframework.batch.core.step.tasklet.TaskletStep;
 import org.springframework.batch.item.database.BeanPropertyItemSqlParameterSourceProvider;
 import org.springframework.batch.item.database.JdbcBatchItemWriter;
 import org.springframework.batch.item.file.FlatFileItemReader;
@@ -24,7 +24,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 
 import com.infotech.batch.listener.JobCompletionNotificationListener;
-import com.infotech.batch.model.Person;
 import com.infotech.batch.processor.PersonItemProcessor;
 
 import java.util.Arrays;
@@ -43,15 +42,16 @@ public class BatchConfiguration {
     public DataSource dataSource;
 
     @Bean
-    public FlatFileItemReader<Person> reader() {
-        FlatFileItemReader<Person> reader = new FlatFileItemReader<Person>();
+    public FlatFileItemReader<User> reader() {
+        FlatFileItemReader<User> reader = new FlatFileItemReader<User>();
         reader.setResource(new ClassPathResource("persons.csv"));
-        reader.setLineMapper(new DefaultLineMapper<Person>() {{
+        reader.setLineMapper(new DefaultLineMapper<User>() {{
             setLineTokenizer(new DelimitedLineTokenizer() {{
-                setNames(new String[]{"firstName", "lastName", "email", "age"});
+                setNames(new String[]{"memberID", "principalID","firstName", "lastName", "middleName", "gender", "national_id", "pin", "date_of_birth", "relation", "mobile_phone_number", "job_group", "country","t_one","t_two"});
             }});
-            setFieldSetMapper(new BeanWrapperFieldSetMapper<Person>() {{
-                setTargetType(Person.class);
+
+            setFieldSetMapper(new BeanWrapperFieldSetMapper<User>() {{
+                setTargetType(User.class);
             }});
         }});
         return reader;
@@ -62,54 +62,71 @@ public class BatchConfiguration {
         return new PersonItemProcessor();
     }
 
-    //        @Bean
-//    public JdbcBatchItemWriter<Person> writer() {
-//        JdbcBatchItemWriter<Person> writer = new JdbcBatchItemWriter<Person>();
-//        writer.setItemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider<Person>());
-//        writer.setSql("INSERT INTO person (first_name, last_name) VALUES (:firstName, :lastName);");
-//        writer.setDataSource(dataSource);
-//        return writer;
-//    }
     @Bean
     @StepScope
-    public JdbcBatchItemWriter<Person> jdbcUpdateTable1Writer(DataSource dataSource) {
-        JdbcBatchItemWriter<Person> jdbcBatchItemWriter = new JdbcBatchItemWriter<>();
+    public JdbcBatchItemWriter<User> jdbcUpdateTable3Writer(DataSource dataSource) {
+        JdbcBatchItemWriter<User> jdbcBatchItemWriter = new JdbcBatchItemWriter<>();
         jdbcBatchItemWriter.setAssertUpdates(true);
         jdbcBatchItemWriter.setDataSource(dataSource);
-        jdbcBatchItemWriter.setSql("INSERT INTO email (email) VALUES (:email)");
-        jdbcBatchItemWriter.setItemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider<Person>());
+        jdbcBatchItemWriter.setSql("INSERT INTO users (firstName,lastName,middleName,gender,date_of_birth,national_id,mobile_phone_number) " +
+                "VALUES (:firstName,:lastName,:middleName,:gender,:date_of_birth,:national_id,:mobile_phone_number)");
+        jdbcBatchItemWriter.setItemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider<User>());
         return jdbcBatchItemWriter;
     }
 
     @Bean
     @StepScope
-    public JdbcBatchItemWriter<Person> jdbcInsertTable2Writer(DataSource dataSource) {
-        JdbcBatchItemWriter<Person> jdbcBatchItemWriter = new JdbcBatchItemWriter<>();
-        jdbcBatchItemWriter.setDataSource(dataSource);
-        jdbcBatchItemWriter.setSql("INSERT INTO age (age) VALUES (:age)");
-        jdbcBatchItemWriter.setItemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider<Person>());
-        return jdbcBatchItemWriter;
-    }
-
-    @Bean
-    @StepScope
-    public JdbcBatchItemWriter<Person> jdbcUpdateTable3Writer(DataSource dataSource) {
-        JdbcBatchItemWriter<Person> jdbcBatchItemWriter = new JdbcBatchItemWriter<>();
+    public JdbcBatchItemWriter<User> jdbcUpdateTable1Writer(DataSource dataSource) {
+        JdbcBatchItemWriter<User> jdbcBatchItemWriter = new JdbcBatchItemWriter<>();
         jdbcBatchItemWriter.setAssertUpdates(true);
         jdbcBatchItemWriter.setDataSource(dataSource);
-        jdbcBatchItemWriter.setSql("INSERT INTO person (first_name, last_name) VALUES (:firstName, :lastName)");
-        jdbcBatchItemWriter.setItemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider<Person>());
+        jdbcBatchItemWriter.setSql("INSERT INTO role_user (role_id) VALUES (:role_id)");
+        jdbcBatchItemWriter.setItemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider<User>());
         return jdbcBatchItemWriter;
     }
 
     @Bean
     @StepScope
-    public CompositeItemWriter<Person> compositeItemWriter(
-            @Qualifier("jdbcUpdateTable1Writer") JdbcBatchItemWriter<Person> jdbcUpdateTable1Writer,
-            @Qualifier("jdbcInsertTable2Writer") JdbcBatchItemWriter<Person> jdbcInsertTable2Writer,
-            @Qualifier("jdbcUpdateTable3Writer") JdbcBatchItemWriter<Person> jdbcUpdateTable3Writer) {
-        CompositeItemWriter<Person> writer = new CompositeItemWriter<>();
-        writer.setDelegates(Arrays.asList(jdbcUpdateTable1Writer, jdbcInsertTable2Writer, jdbcUpdateTable3Writer));
+    public JdbcBatchItemWriter<User> jdbcInsertTable2Writer(DataSource dataSource) {
+        JdbcBatchItemWriter<User> jdbcBatchItemWriter = new JdbcBatchItemWriter<>();
+        jdbcBatchItemWriter.setDataSource(dataSource);
+        jdbcBatchItemWriter.setSql("INSERT INTO BLS_members (member_id,principal_id,pin,relation,job_group,country) VALUES ( :national_id, :national_id, :pin, :relation, :job_group, :country)");
+        jdbcBatchItemWriter.setItemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider<User>());
+        return jdbcBatchItemWriter;
+    }
+
+    @Bean
+    @StepScope
+    public JdbcBatchItemWriter<User> jdbcInsertTable4Writer(DataSource dataSource) {
+        JdbcBatchItemWriter<User> jdbcBatchItemWriter = new JdbcBatchItemWriter<>();
+        jdbcBatchItemWriter.setDataSource(dataSource);
+        jdbcBatchItemWriter.setSql("INSERT INTO BLS_categories (scheme_id,category_name) VALUES (:scheme_id, :category_name)");
+        jdbcBatchItemWriter.setItemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider<User>());
+        return jdbcBatchItemWriter;
+    }
+
+    @Bean
+    @StepScope
+    public JdbcBatchItemWriter<User> jdbcInsertTable5Writer(DataSource dataSource) {
+        JdbcBatchItemWriter<User> jdbcBatchItemWriter = new JdbcBatchItemWriter<>();
+        jdbcBatchItemWriter.setDataSource(dataSource);
+        jdbcBatchItemWriter.setSql("INSERT INTO BLS_user_category (category_id) VALUES (:category_id)");
+        jdbcBatchItemWriter.setItemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider<User>());
+        return jdbcBatchItemWriter;
+    }
+
+
+    @Bean
+    @StepScope
+    public CompositeItemWriter<User> compositeItemWriter(
+            @Qualifier("jdbcUpdateTable1Writer") JdbcBatchItemWriter<User> jdbcUpdateTable1Writer,
+            @Qualifier("jdbcInsertTable2Writer") JdbcBatchItemWriter<User> jdbcInsertTable2Writer,
+            @Qualifier("jdbcUpdateTable3Writer") JdbcBatchItemWriter<User> jdbcUpdateTable3Writer,
+            @Qualifier("jdbcInsertTable4Writer") JdbcBatchItemWriter<User> jdbcInsertTable4Writer,
+            @Qualifier("jdbcInsertTable5Writer") JdbcBatchItemWriter<User> jdbcInsertTable5Writer
+    ) {
+        CompositeItemWriter<User> writer = new CompositeItemWriter<>();
+        writer.setDelegates(Arrays.asList(jdbcUpdateTable1Writer, jdbcInsertTable2Writer, jdbcUpdateTable3Writer, jdbcInsertTable4Writer, jdbcInsertTable5Writer));
         return writer;
     }
 
@@ -127,10 +144,10 @@ public class BatchConfiguration {
     @Bean
     public Step step1() {
         return stepBuilderFactory.get("step1")
-                .<Person, Person>chunk(100000)
+                .<User, User>chunk(100000)
                 .reader(reader())
                 .processor(processor())
-                .writer(compositeItemWriter(jdbcUpdateTable1Writer(dataSource), jdbcInsertTable2Writer(dataSource), jdbcUpdateTable3Writer(dataSource)))
+                .writer(compositeItemWriter(jdbcUpdateTable1Writer(dataSource), jdbcInsertTable2Writer(dataSource), jdbcUpdateTable3Writer(dataSource), jdbcInsertTable4Writer(dataSource), jdbcInsertTable5Writer(dataSource)))
                 .build();
     }
 }
